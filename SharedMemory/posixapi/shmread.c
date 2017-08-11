@@ -1,4 +1,4 @@
-#include "shutils.h"
+#include "shmutils.h"
 
 void handler(int signo)
 {
@@ -18,9 +18,9 @@ int main(int argc, char** argv)
         if (EEXIST == errno)
         {
             printf("READER: share memory for key[%s] exist!\n", IPC_SHM_NAME);
-            shm_id = shm_open(IPC_SHM_NAME, O_RDONLY, 0666);
+            shm_id = shm_open(IPC_SHM_NAME, O_RDWR, 0666);
             ftruncate(shm_id, sizeof(shared_data));
-            shm_data = (shared_data*)mmap(0, sizeof(shared_data), PROT_READ, MAP_SHARED, shm_id, 0);
+            shm_data = (shared_data*)mmap(0, sizeof(shared_data), PROT_READ | PROT_WRITE, MAP_SHARED, shm_id, 0);
             pid = shm_data->pid;
             shm_data->pid = getpid();
             kill(pid, SIGUSR1);
@@ -34,19 +34,22 @@ int main(int argc, char** argv)
     else
     {
         ftruncate(shm_id, sizeof(shared_data));
-        shm_data = (shared_data*)mmap(0, sizeof(shared_data), PROT_READ, MAP_SHARED, shm_id, 0);
+        shm_data = (shared_data*)mmap(0, sizeof(shared_data), PROT_READ | PROT_WRITE, MAP_SHARED, shm_id, 0);
         shm_data->pid = getpid();
-        pause(); // wait for awake
-        pid = shm_data->pid;
     }
     while (running)
     {
+		printf("READER: wait for awake...\n");
         pause();
+        pid = shm_data->pid;
+		shm_data->pid = getpid();
+		printf("READER: awake from %0x.\n", pid);
         if (strcmp(shm_data->buffer, END_STR) == 0)
         {
             running = false;
         }
         printf("READER: read from shm: %s\n", shm_data->buffer);
+		sleep(1);
         kill(pid, SIGUSR1);
     }
     munmap(shm_p, sizeof(shared_data));

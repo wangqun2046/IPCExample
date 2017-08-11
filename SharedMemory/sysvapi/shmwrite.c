@@ -1,4 +1,4 @@
-#include "shutils.h"
+#include "shmutils.h"
 
 void handler(int signo)
 {
@@ -48,6 +48,7 @@ int main(int argc, char** argv)
     while (running)
     {
         printf("WRITER: write to shm: ");
+		fflush(stdout);
         fgets(shm_data->buffer, BUFFER_SIZE, stdin);
         kill(pid, SIGUSR1);
         if (strcmp(shm_data->buffer, END_STR) == 0)

@@ -1,12 +1,12 @@
-all : shread shwrite 
+all : shmread shmwrite 
 
-shwrite : shwrite.o
+shmwrite : shmwrite.o
 	gcc -o $@ $^
 
-shread : shread.o
+shmread : shmread.o
 	gcc -o $@ $^
 
 *.cc.o : *.c
 
 clean :
-	rm -vf shwrite shread *.o
+	rm -vf shmwrite shmread *.o
